@@ -90,7 +90,6 @@ form {
 .field input,
 .field textarea {
   flex: 1;
-  width: 100%;
 
   padding: 8px;
 

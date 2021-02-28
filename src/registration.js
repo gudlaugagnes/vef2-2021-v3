@@ -1,8 +1,11 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable import/no-unresolved */
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import xss from 'xss';
-
-import { list, insert } from './db.js';
+import {
+  list, insert, select, counter,
+} from './db.js';
 
 export const router = express.Router();
 
@@ -16,6 +19,7 @@ function catchErrors(fn) {
   return (req, res, next) => fn(req, res, next).catch(next);
 }
 
+/*
 async function index(req, res) {
   const errors = [];
   const formData = {
@@ -31,6 +35,7 @@ async function index(req, res) {
     errors, formData, registrations,
   });
 }
+*/
 
 const nationalIdPattern = '^[0-9]{6}-?[0-9]{4}$';
 
@@ -106,7 +111,48 @@ async function register(req, res) {
   return res.render('error', { title: 'Gat ekki skráð!', text: 'Hafðir þú skrifað undir áður?' });
 }
 
-router.get('/', catchErrors(index));
+async function paging(req, res) {
+  let { offset = 0, limit = 50 } = req.query;
+  offset = Number(offset);
+  limit = Number(limit);
+
+  const registrations = await select(offset, limit);
+  const errors = [];
+  const amount = await counter();
+  const formData = {
+    name: '',
+    nationalId: '',
+    anonymous: false,
+    comment: '',
+    registrations,
+    amount,
+  };
+
+  const result = {
+    _links: {
+      self: {
+        href: `/?offset=${offset}&limit=${limit}`,
+      },
+    },
+  };
+
+  if (offset > 0) {
+    result._links.prev = {
+      href: `/?offset=${offset - limit}&limit=${limit}`,
+    };
+  }
+
+  if (registrations.length <= limit) {
+    result._links.next = {
+      href: `/?offset=${Number(offset) + limit}&limit=${limit}`,
+    };
+  }
+
+  return res.render('index', { errors, formData, result });
+}
+
+/* router.get('/', catchErrors(index)); */
+router.get('/', catchErrors(paging));
 
 router.post(
   '/',

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import pg from 'pg';
 import dotenv from 'dotenv';
 
@@ -91,4 +92,44 @@ export async function list() {
 // Helper to remove pg from the event loop
 export async function end() {
   await pool.end();
+}
+
+export async function counter() {
+  let result = [];
+  try {
+    const queryResult = await query(
+      'SELECT COUNT(*) AS count FROM signatures;',
+    );
+
+    if (queryResult && queryResult.rows) {
+      result = queryResult.rows;
+    }
+  } catch (e) {
+    console.error('Error selecting signatures', e);
+  }
+
+  return result;
+}
+
+export async function select(offset = 0, limit = 50) {
+  const client = await pool.connect();
+
+  try {
+    const q = 'SELECT * FROM signatures ORDER BY signed DESC OFFSET $1 LIMIT $2';
+    const res = await client.query(q, [offset, limit]);
+
+    return res.rows;
+  } catch (e) {
+    console.error('Error selecting', e);
+  } finally {
+    client.release();
+  }
+
+  return [];
+}
+
+export async function deleteRow(id) {
+  const q = 'DELETE FROM signatures WHERE id = $1';
+
+  return query(q, id);
 }
