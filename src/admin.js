@@ -2,7 +2,7 @@
 /* eslint-disable import/no-unresolved */
 import express from 'express';
 import { catchErrors, ensureLoggedIn } from './utils.js';
-import { select, deleteRow } from './db.js';
+import { select, deleteRow, counter } from './db.js';
 
 export const router = express.Router();
 
@@ -12,6 +12,8 @@ async function pagingAdmin(req, res) {
   limit = Number(limit);
 
   const registrations = await select(offset, limit);
+  const regCount = await counter();
+  const { username } = req.user;
 
   const formData = {
     registrations,
@@ -20,24 +22,29 @@ async function pagingAdmin(req, res) {
   const result = {
     _links: {
       self: {
-        href: `/?offset=${offset}&limit=${limit}`,
+        href: `/admin/?offset=${offset}&limit=${limit}`,
       },
     },
   };
 
   if (offset > 0) {
     result._links.prev = {
-      href: `/?offset=${offset - limit}&limit=${limit}`,
+      href: `/admin/?offset=${offset - limit}&limit=${limit}`,
     };
   }
 
   if (registrations.length <= limit) {
     result._links.next = {
-      href: `/?offset=${Number(offset) + limit}&limit=${limit}`,
+      href: `/admin/?offset=${Number(offset) + limit}&limit=${limit}`,
     };
   }
 
-  return res.render('users', { formData, result });
+  const pageCounter = {
+    currentPage: `${(offset / 50) + 1}`,
+    lastPage: `${Math.ceil(regCount.count / 50)}`,
+  };
+
+  return res.render('users', { formData, result, regCount, pageCounter, username });
 }
 
 /**
@@ -54,5 +61,5 @@ async function deleteSignatures(req, res) {
   return res.redirect('/admin');
 }
 
-
+router.post('/delete/:id', ensureLoggedIn, catchErrors(deleteSignatures));
 router.get('/', ensureLoggedIn, catchErrors(pagingAdmin));

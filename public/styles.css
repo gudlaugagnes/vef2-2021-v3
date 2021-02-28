@@ -64,6 +64,16 @@ h2 {
   text-align: center;
 }
 
+.delete-form {
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+}
+
+.delete-button {
+  font-size: 1em;
+  margin-top: 0px;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -151,6 +161,13 @@ button:hover {
 
 .errors__title {
   margin-top: 1rem;
+}
+
+.pages {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 
 .registrations {

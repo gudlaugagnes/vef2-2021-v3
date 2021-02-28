@@ -19,24 +19,6 @@ function catchErrors(fn) {
   return (req, res, next) => fn(req, res, next).catch(next);
 }
 
-/*
-async function index(req, res) {
-  const errors = [];
-  const formData = {
-    name: '',
-    nationalId: '',
-    anonymous: false,
-    comment: '',
-  };
-
-  const registrations = await list();
-
-  res.render('index', {
-    errors, formData, registrations,
-  });
-}
-*/
-
 const nationalIdPattern = '^[0-9]{6}-?[0-9]{4}$';
 
 const validationMiddleware = [
@@ -118,14 +100,14 @@ async function paging(req, res) {
 
   const registrations = await select(offset, limit);
   const errors = [];
-  const amount = await counter();
+  const regCount = await counter();
   const formData = {
     name: '',
     nationalId: '',
     anonymous: false,
     comment: '',
     registrations,
-    amount,
+
   };
 
   const result = {
@@ -148,7 +130,12 @@ async function paging(req, res) {
     };
   }
 
-  return res.render('index', { errors, formData, result });
+  const pageCounter = {
+    currentPage: `${(offset / 50) + 1}`,
+    lastPage: `${Math.ceil(regCount.count / 50)}`,
+  };
+
+  return res.render('index', { errors, formData, result, regCount, pageCounter });
 }
 
 /* router.get('/', catchErrors(index)); */

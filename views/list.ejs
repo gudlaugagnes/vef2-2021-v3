@@ -1,44 +1,44 @@
 <section class="registrations">
   <h2 class="registrations__title">Undirskriftir</h2>
-  <p>Fjöldi undirskrifta: %></p>
-  <% if (formData.registrations.length===0) { %>
+  <p class=signature-counter>Fjöldi undirskrifta: <%= regCount.count %></p>
+  <% if (formData.registrations.length === 0) { %>
     <p class="registrations__empty">Engar undirskriftir.</p>
-    <% } else { %>
-      <table class="registrations__table" cellpadding="0">
+  <% } else { %>
+    <table class="registrations__table" cellpadding="0">
+      <tr>
+        <th>Dags</th>
+        <th>Nafn</th>
+        <th>Athugasemd</th>
+        <% if(user) { %>
+          <th>Eyða</th>
+        <% } %>
+      </tr>
+      <% formData.registrations.forEach((row) => { %>
         <tr>
-          <th>Dags</th>
-          <th>Nafn</th>
-          <th>Athugasemd</th>
+          <td class="date"><%= formatDate(row.signed) %></td>
+          <td class="name"><%= row.anonymous ? 'Nafnlaust' : row.name %></td>
+          <td class="comment"><%= row.comment %></td>
           <% if(user) { %>
-            <th>Eyða</th>
+            <td class="delete">
+              <form class="delete-form" method="post" action="/admin/delete/<%= row.id %>" enctype="application/x-www-form-urlencoded">
+                <button class="delete-button">Eyða</button>
+              </form>
+            </td>
           <% } %>
         </tr>
-        <% formData.registrations.forEach((row)=> { %>
-          <tr>
-            <td class="date">
-              <%= formatDate(row.signed) %>
-            </td>
-            <td class="name">
-              <%= row.anonymous ? 'Nafnlaust' : row.name %>
-            </td>
-            <td class="comment">
-              <%= row.comment %>
-            </td>
-            <% if(user) { %>
-              <td class="delete">
-                <form class="delete" method="post" action="/admin/delete/<%= row.id %>"
-                  enctype="application/x-www-form-urlencoded">
-                  <button class="delete-button">Eyða</button>
-                </form>
-              </td>
-              <% } %>
-          </tr>
-          <% }) %>
-            </tr>
-      </table>
+      <% }) %>
+      </tr>
+    </table>
+    <div class="pages">
+      <% if (result._links.prev) { %>
+          <div class="prev-page">
+            <a href="<%= result._links.prev.href %>">Fyrri síða</a>
+          </div>
       <% } %>
-        <% if (result._links.prev) { %>
-          <a href="<%= result._links.prev.href %>"> Fyrri síða </a>
-          <% } %>
-            <a href="<%= result._links.next.href %>"> Næsta síða </a>
+       <p class="page-counter">Síða <%= pageCounter.currentPage %> af <%= pageCounter.lastPage %> </p>
+       <div class="next-page">
+        <a href="<%= result._links.next.href %>">Næsta síða</a>
+      </div>
+    </div>
+  <% } %>
 </section>
